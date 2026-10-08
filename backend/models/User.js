@@ -4,7 +4,7 @@ const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-    phone: { type: String, required: true, unique: true, trim: true },
+    phone: { type: String, trim: true, default: '' },
     password: { type: String, required: true, select: false },
     role: { type: String, enum: ['member', 'concierge', 'admin'], default: 'member' },
     age: { type: Number, min: 18 },
@@ -18,10 +18,8 @@ const userSchema = new mongoose.Schema(
     isVerified: { type: Boolean, default: false },
     isPremium: { type: Boolean, default: false },
     lastSeen: { type: Date, default: Date.now },
-
     emailVerified: { type: Boolean, default: false },
     phoneVerified: { type: Boolean, default: false },
-
     emailCode: {
       code: { type: String, default: '' },
       expiresAt: { type: Date, default: null },
