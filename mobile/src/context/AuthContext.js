@@ -40,6 +40,7 @@ export const AuthProvider = ({ children }) => {
       interests: u.interests, lookingFor: u.lookingFor,
       budgetRange: u.budgetRange, photos: u.photos,
       isVerified: u.isVerified, isPremium: u.isPremium,
+      verification: u.verification,
     };
     setUser(normalized);
     await AsyncStorage.setItem('user', JSON.stringify(normalized));

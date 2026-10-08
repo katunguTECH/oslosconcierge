@@ -176,3 +176,103 @@ exports.deletePhoto = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+// ============= VERIFICATION =============
+
+// Submit ID + selfie for verification
+exports.submitVerification = async (req, res) => {
+  try {
+    const { idPhoto, selfie } = req.body;
+    if (!idPhoto || !selfie) {
+      return res.status(400).json({ message: 'ID photo and selfie are required' });
+    }
+
+    if (idPhoto.length > 5 * 1024 * 1024 || selfie.length > 5 * 1024 * 1024) {
+      return res.status(400).json({ message: 'Each image must be under ~4MB' });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    if (user.verification.status === 'pending') {
+      return res.status(400).json({ message: 'Verification already pending review' });
+    }
+    if (user.verification.status === 'approved') {
+      return res.status(400).json({ message: 'You are already verified' });
+    }
+
+    // Upload ID photo to a private folder
+    const idResult = await cloudinary.uploader.upload(idPhoto, {
+      folder: 'oslos/verification/ids',
+      type: 'private',
+    });
+
+    // Upload selfie
+    const selfieResult = await cloudinary.uploader.upload(selfie, {
+      folder: 'oslos/verification/selfies',
+      type: 'private',
+    });
+
+    user.verification = {
+      status: 'pending',
+      idPhotoUrl: idResult.secure_url,
+      selfieUrl: selfieResult.secure_url,
+      submittedAt: new Date(),
+      reviewedAt: null,
+      rejectionReason: '',
+    };
+    await user.save();
+
+    res.json({
+      message: 'Verification submitted. Our team will review within 24 hours.',
+      verification: {
+        status: user.verification.status,
+        submittedAt: user.verification.submittedAt,
+      },
+    });
+  } catch (err) {
+    console.error('Verification upload error:', err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// Admin: list all pending verifications
+exports.getPendingVerifications = async (req, res) => {
+  try {
+    const users = await User.find({ 'verification.status': 'pending' })
+      .select('name email age city photos verification')
+      .sort({ 'verification.submittedAt': 1 });
+    res.json({ count: users.length, users });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// Admin: approve or reject a verification
+exports.reviewVerification = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { decision, reason } = req.body;
+
+    if (!['approved', 'rejected'].includes(decision)) {
+      return res.status(400).json({ message: 'Decision must be approved or rejected' });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    user.verification.status = decision;
+    user.verification.reviewedAt = new Date();
+    user.verification.rejectionReason = decision === 'rejected' ? (reason || '') : '';
+    user.isVerified = decision === 'approved';
+
+    await user.save();
+
+    res.json({
+      message: `Verification ${decision}`,
+      user: { id: user._id, name: user.name, isVerified: user.isVerified },
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};

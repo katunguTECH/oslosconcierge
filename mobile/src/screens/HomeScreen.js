@@ -41,7 +41,7 @@ export default function HomeScreen({ navigation }) {
       )}
       <View style={{ flex: 1 }}>
         <Text style={styles.name}>
-          {item.name} {item.isVerified ? ' [V]' : ''} {item.isPremium ? ' [P]' : ''}
+          {item.name} {item.isVerified ? '  [V]' : ''} {item.isPremium ? '  [P]' : ''}
         </Text>
         <Text style={styles.meta}>
           {[item.age, item.city].filter(Boolean).join(' - ') || 'New member'}
@@ -51,6 +51,8 @@ export default function HomeScreen({ navigation }) {
     </TouchableOpacity>
   );
 
+  const isAdmin = user?.role === 'admin';
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -58,10 +60,42 @@ export default function HomeScreen({ navigation }) {
           <Text style={styles.hello}>Welcome, {user?.name}</Text>
           <Text style={styles.sub}>Oslo's Concierge</Text>
         </View>
-        <TouchableOpacity onPress={() => navigation.navigate('Profile')} style={styles.profileBtn}>
-          <Text style={styles.profileBtnText}>My Profile</Text>
+        {isAdmin && (
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Admin')}
+            style={[styles.topBtn, { marginRight: 8 }]}
+          >
+            <Text style={styles.topBtnText}>Admin</Text>
+          </TouchableOpacity>
+        )}
+        <TouchableOpacity
+          onPress={() => navigation.navigate('Profile')}
+          style={styles.topBtn}
+        >
+          <Text style={styles.topBtnText}>Profile</Text>
         </TouchableOpacity>
       </View>
+
+      {!user?.isVerified && (
+        <TouchableOpacity
+          style={styles.verifyBanner}
+          onPress={() => navigation.navigate('Verify')}
+        >
+          <View style={{ flex: 1 }}>
+            <Text style={styles.verifyTitle}>
+              {user?.verification?.status === 'pending'
+                ? 'Verification in review'
+                : 'Get verified'}
+            </Text>
+            <Text style={styles.verifyText}>
+              {user?.verification?.status === 'pending'
+                ? 'We are reviewing your documents'
+                : 'Boost trust and unlock premium features'}
+            </Text>
+          </View>
+          <Text style={styles.verifyArrow}>→</Text>
+        </TouchableOpacity>
+      )}
 
       {loading ? (
         <ActivityIndicator color="#D4AF37" style={{ marginTop: 40 }} />
@@ -86,11 +120,19 @@ const styles = StyleSheet.create({
   },
   hello: { color: '#fff', fontSize: 18, fontWeight: '700' },
   sub: { color: '#D4AF37', fontSize: 12, letterSpacing: 1, marginTop: 2 },
-  profileBtn: {
-    paddingVertical: 8, paddingHorizontal: 14, borderRadius: 20,
+  topBtn: {
+    paddingVertical: 8, paddingHorizontal: 12, borderRadius: 20,
     borderWidth: 1, borderColor: '#D4AF37',
   },
-  profileBtnText: { color: '#D4AF37', fontSize: 13, fontWeight: '600' },
+  topBtnText: { color: '#D4AF37', fontSize: 12, fontWeight: '600' },
+  verifyBanner: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: '#1A1610', borderWidth: 1, borderColor: '#3A3020',
+    marginHorizontal: 16, marginTop: 16, padding: 14, borderRadius: 12,
+  },
+  verifyTitle: { color: '#D4AF37', fontWeight: '700', fontSize: 15 },
+  verifyText: { color: '#888', fontSize: 12, marginTop: 2 },
+  verifyArrow: { color: '#D4AF37', fontSize: 22, marginLeft: 12 },
   card: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: '#14141A',
     padding: 14, borderRadius: 14, marginBottom: 12,

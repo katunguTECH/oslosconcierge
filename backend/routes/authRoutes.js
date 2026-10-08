@@ -1,6 +1,7 @@
 ﻿const express = require('express');
 const router = express.Router();
 const protect = require('../middleware/auth');
+const requireAdmin = require('../middleware/admin');
 const {
   register,
   login,
@@ -9,6 +10,9 @@ const {
   updateProfile,
   uploadPhoto,
   deletePhoto,
+  submitVerification,
+  getPendingVerifications,
+  reviewVerification,
 } = require('../controllers/authController');
 
 router.post('/register', register);
@@ -18,5 +22,12 @@ router.get('/members', protect, getMembers);
 router.put('/profile', protect, updateProfile);
 router.post('/photos', protect, uploadPhoto);
 router.delete('/photos/:index', protect, deletePhoto);
+
+// Verification
+router.post('/verify', protect, submitVerification);
+
+// Admin
+router.get('/admin/pending', protect, requireAdmin, getPendingVerifications);
+router.post('/admin/verify/:userId', protect, requireAdmin, reviewVerification);
 
 module.exports = router;

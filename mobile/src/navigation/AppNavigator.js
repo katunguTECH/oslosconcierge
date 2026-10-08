@@ -10,6 +10,8 @@ import HomeScreen from '../screens/HomeScreen';
 import ChatScreen from '../screens/ChatScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
+import VerifyScreen from '../screens/VerifyScreen';
+import AdminScreen from '../screens/AdminScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -41,6 +43,10 @@ export default function AppNavigator() {
               options={{ headerShown: true, title: 'My Profile', headerStyle: { backgroundColor: '#14141A' } }} />
             <Stack.Screen name="EditProfile" component={EditProfileScreen}
               options={{ headerShown: true, title: 'Edit Profile', headerStyle: { backgroundColor: '#14141A' } }} />
+            <Stack.Screen name="Verify" component={VerifyScreen}
+              options={{ headerShown: true, title: 'Verification', headerStyle: { backgroundColor: '#14141A' } }} />
+            <Stack.Screen name="Admin" component={AdminScreen}
+              options={{ headerShown: true, title: 'Admin', headerStyle: { backgroundColor: '#14141A' } }} />
           </>
         ) : (
           <>

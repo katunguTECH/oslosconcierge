@@ -17,6 +17,19 @@ const userSchema = new mongoose.Schema(
     isVerified: { type: Boolean, default: false },
     isPremium: { type: Boolean, default: false },
     lastSeen: { type: Date, default: Date.now },
+
+    verification: {
+      status: {
+        type: String,
+        enum: ['unverified', 'pending', 'approved', 'rejected'],
+        default: 'unverified',
+      },
+      idPhotoUrl: { type: String, default: '' },
+      selfieUrl: { type: String, default: '' },
+      submittedAt: { type: Date },
+      reviewedAt: { type: Date },
+      rejectionReason: { type: String, default: '' },
+    },
   },
   { timestamps: true }
 );
