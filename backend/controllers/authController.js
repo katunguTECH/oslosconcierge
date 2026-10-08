@@ -79,3 +79,73 @@ exports.getMembers = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+exports.updateProfile = async (req, res) => {
+  try {
+    const allowed = ['name', 'age', 'gender', 'city', 'bio', 'interests', 'lookingFor', 'budgetRange'];
+    const updates = {};
+
+    allowed.forEach((field) => {
+      if (req.body[field] !== undefined) updates[field] = req.body[field];
+    });
+
+    if (updates.age && Number(updates.age) < 18) {
+      return res.status(400).json({ message: 'You must be 18 or older' });
+    }
+
+    const user = await User.findByIdAndUpdate(req.user._id, updates, {
+      new: true, runValidators: true,
+    }).select('-password');
+
+    res.json({ user });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.uploadPhoto = async (req, res) => {
+  try {
+    const { image } = req.body;
+    if (!image || typeof image !== 'string') {
+      return res.status(400).json({ message: 'Image data is required' });
+    }
+
+    if (image.length > 4 * 1024 * 1024) {
+      return res.status(400).json({ message: 'Image too large (max ~3MB)' });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    if (user.photos.length >= 6) {
+      return res.status(400).json({ message: 'Maximum 6 photos allowed' });
+    }
+
+    user.photos.push(image);
+    await user.save();
+
+    res.json({ photos: user.photos });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.deletePhoto = async (req, res) => {
+  try {
+    const { index } = req.params;
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const i = Number(index);
+    if (i < 0 || i >= user.photos.length) {
+      return res.status(400).json({ message: 'Invalid photo index' });
+    }
+
+    user.photos.splice(i, 1);
+    await user.save();
+
+    res.json({ photos: user.photos });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};

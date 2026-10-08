@@ -8,6 +8,8 @@ import LoginScreen from '../screens/LoginScreen';
 import SignUpScreen from '../screens/SignUpScreen';
 import HomeScreen from '../screens/HomeScreen';
 import ChatScreen from '../screens/ChatScreen';
+import ProfileScreen from '../screens/ProfileScreen';
+import EditProfileScreen from '../screens/EditProfileScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -35,6 +37,10 @@ export default function AppNavigator() {
             <Stack.Screen name="Home" component={HomeScreen} />
             <Stack.Screen name="Chat" component={ChatScreen}
               options={{ headerShown: true, headerStyle: { backgroundColor: '#14141A' } }} />
+            <Stack.Screen name="Profile" component={ProfileScreen}
+              options={{ headerShown: true, title: 'My Profile', headerStyle: { backgroundColor: '#14141A' } }} />
+            <Stack.Screen name="EditProfile" component={EditProfileScreen}
+              options={{ headerShown: true, title: 'Edit Profile', headerStyle: { backgroundColor: '#14141A' } }} />
           </>
         ) : (
           <>

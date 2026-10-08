@@ -31,6 +31,21 @@ export const AuthProvider = ({ children }) => {
     socket.connect();
   };
 
+  const refreshUser = async () => {
+    const { data } = await api.get('/api/auth/me');
+    const u = data.user;
+    const normalized = {
+      id: u._id, name: u.name, email: u.email, role: u.role,
+      age: u.age, gender: u.gender, city: u.city, bio: u.bio,
+      interests: u.interests, lookingFor: u.lookingFor,
+      budgetRange: u.budgetRange, photos: u.photos,
+      isVerified: u.isVerified, isPremium: u.isPremium,
+    };
+    setUser(normalized);
+    await AsyncStorage.setItem('user', JSON.stringify(normalized));
+    return normalized;
+  };
+
   const login = async (email, password) => {
     const { data } = await api.post('/api/auth/login', { email, password });
     await persist(data.token, data.user);
@@ -51,7 +66,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );
