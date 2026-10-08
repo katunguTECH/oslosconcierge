@@ -6,13 +6,14 @@ require('dotenv').config();
 
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 const chatSocket = require('./sockets/chat');
 
 const app = express();
 const server = http.createServer(app);
 
 const io = new Server(server, {
-  cors: { origin: '*', methods: ['GET', 'POST'] },
+  cors: { origin: '*', methods: ['GET', 'POST', 'DELETE'] },
 });
 
 app.use(cors());
@@ -23,6 +24,7 @@ app.get('/', (req, res) =>
 );
 
 app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
 
 chatSocket(io);
 

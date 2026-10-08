@@ -62,7 +62,7 @@ export default function HomeScreen({ navigation }) {
         </View>
         {isAdmin && (
           <TouchableOpacity
-            onPress={() => navigation.navigate('Admin')}
+            onPress={() => navigation.navigate('AdminLogin')}
             style={[styles.topBtn, { marginRight: 8 }]}
           >
             <Text style={styles.topBtnText}>Admin</Text>
