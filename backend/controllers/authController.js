@@ -1,6 +1,7 @@
 ﻿const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
+const cloudinary = require('../config/cloudinary');
 
 const signToken = (id) =>
   jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
@@ -121,11 +122,21 @@ exports.uploadPhoto = async (req, res) => {
       return res.status(400).json({ message: 'Maximum 6 photos allowed' });
     }
 
-    user.photos.push(image);
+    const result = await cloudinary.uploader.upload(image, {
+      folder: 'oslos/profiles',
+      transformation: [
+        { width: 1000, height: 1250, crop: 'limit' },
+        { quality: 'auto:good' },
+        { fetch_format: 'auto' },
+      ],
+    });
+
+    user.photos.push(result.secure_url);
     await user.save();
 
-    res.json({ photos: user.photos });
+    res.json({ photos: user.photos, url: result.secure_url });
   } catch (err) {
+    console.error('Cloudinary upload error:', err);
     res.status(500).json({ message: err.message });
   }
 };
@@ -139,6 +150,22 @@ exports.deletePhoto = async (req, res) => {
     const i = Number(index);
     if (i < 0 || i >= user.photos.length) {
       return res.status(400).json({ message: 'Invalid photo index' });
+    }
+
+    const url = user.photos[i];
+
+    if (url.includes('res.cloudinary.com')) {
+      try {
+        const parts = url.split('/');
+        const uploadIndex = parts.indexOf('upload');
+        if (uploadIndex !== -1) {
+          const afterUpload = parts.slice(uploadIndex + 2).join('/');
+          const publicId = afterUpload.replace(/\.[^/.]+$/, '');
+          await cloudinary.uploader.destroy(publicId);
+        }
+      } catch (e) {
+        console.log('Cloudinary delete failed (non-fatal):', e.message);
+      }
     }
 
     user.photos.splice(i, 1);
