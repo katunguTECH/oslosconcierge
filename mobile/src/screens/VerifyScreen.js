@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useCallback } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView,
   ActivityIndicator, Alert, Platform,
@@ -16,6 +16,7 @@ export default function VerifyScreen({ navigation }) {
   const { user, refreshUser } = useAuth();
   const [emailCode, setEmailCode] = useState('');
   const [phoneCode, setPhoneCode] = useState('');
+  const [phoneInput, setPhoneInput] = useState('');
   const [busyE, setBusyE] = useState(false);
   const [busyP, setBusyP] = useState(false);
   const [sentE, setSentE] = useState(false);
@@ -29,7 +30,20 @@ export default function VerifyScreen({ navigation }) {
 
   const emailVerified = user?.emailVerified;
   const phoneVerified = user?.phoneVerified;
-  const allVerified = emailVerified && phoneVerified;
+  const hasPhone = !!(user?.phone && user.phone.trim() !== '');
+
+  const savePhone = async () => {
+    if (!phoneInput.trim()) return showAlert('Missing', 'Enter your phone number');
+    try {
+      setBusyP(true);
+      await api.post('/api/verify/set-phone', { phone: phoneInput });
+      await refreshUser();
+      showAlert('Saved', 'Phone number saved');
+      setPhoneInput('');
+    } catch (err) {
+      showAlert('Error', err?.response?.data?.message || err.message);
+    } finally { setBusyP(false); }
+  };
 
   const sendEmail = async () => {
     try {
@@ -79,23 +93,11 @@ export default function VerifyScreen({ navigation }) {
     } finally { setBusyP(false); }
   };
 
-  if (allVerified) {
-    return (
-      <View style={styles.center}>
-        <Text style={styles.bigIcon}>OK</Text>
-        <Text style={styles.approvedTitle}>You are verified</Text>
-        <Text style={styles.approvedText}>
-          Your email and phone are confirmed. Welcome to Oslo's Concierge.
-        </Text>
-      </View>
-    );
-  }
-
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
       <Text style={styles.title}>Verify your account</Text>
       <Text style={styles.subtitle}>
-        Confirm your email and phone to unlock the platform. Two quick steps.
+        Confirm your email and phone to unlock the platform.
       </Text>
 
       {/* EMAIL */}
@@ -104,7 +106,7 @@ export default function VerifyScreen({ navigation }) {
           <Text style={styles.stepLabel}>1. Email</Text>
           {emailVerified && <Text style={styles.done}>VERIFIED</Text>}
         </View>
-        <Text style={styles.value}>{user?.email || '—'}</Text>
+        <Text style={styles.value}>{user?.email || '-'}</Text>
 
         {!emailVerified && (
           <>
@@ -141,55 +143,61 @@ export default function VerifyScreen({ navigation }) {
           <Text style={styles.stepLabel}>2. Phone</Text>
           {phoneVerified && <Text style={styles.done}>VERIFIED</Text>}
         </View>
-        <Text style={styles.value}>{user?.phone || '—'}</Text>
 
-        {!phoneVerified && (
+        {!hasPhone ? (
           <>
-            {!sentP ? (
-              <TouchableOpacity style={styles.btn} onPress={sendPhone} disabled={busyP}>
-                {busyP ? <ActivityIndicator color="#000" /> : <Text style={styles.btnText}>Send SMS code</Text>}
-              </TouchableOpacity>
-            ) : (
+            <Text style={styles.value}>Add your phone number to continue</Text>
+            <TextInput
+              style={styles.phoneInput}
+              placeholder="+254712345678"
+              placeholderTextColor="#666"
+              keyboardType="phone-pad"
+              value={phoneInput}
+              onChangeText={setPhoneInput}
+            />
+            <TouchableOpacity style={styles.btn} onPress={savePhone} disabled={busyP}>
+              {busyP ? <ActivityIndicator color="#000" /> : <Text style={styles.btnText}>Save phone number</Text>}
+            </TouchableOpacity>
+          </>
+        ) : (
+          <>
+            <Text style={styles.value}>{user?.phone}</Text>
+            {!phoneVerified && (
               <>
-                <TextInput
-                  style={styles.input}
-                  placeholder="6-digit code"
-                  placeholderTextColor="#666"
-                  keyboardType="number-pad"
-                  maxLength={6}
-                  value={phoneCode}
-                  onChangeText={setPhoneCode}
-                />
-                <TouchableOpacity style={styles.btn} onPress={checkPhone} disabled={busyP}>
-                  {busyP ? <ActivityIndicator color="#000" /> : <Text style={styles.btnText}>Confirm phone</Text>}
-                </TouchableOpacity>
-                <TouchableOpacity onPress={sendPhone} disabled={busyP}>
-                  <Text style={styles.resend}>Resend code</Text>
-                </TouchableOpacity>
+                {!sentP ? (
+                  <TouchableOpacity style={styles.btn} onPress={sendPhone} disabled={busyP}>
+                    {busyP ? <ActivityIndicator color="#000" /> : <Text style={styles.btnText}>Send SMS code</Text>}
+                  </TouchableOpacity>
+                ) : (
+                  <>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="6-digit code"
+                      placeholderTextColor="#666"
+                      keyboardType="number-pad"
+                      maxLength={6}
+                      value={phoneCode}
+                      onChangeText={setPhoneCode}
+                    />
+                    <TouchableOpacity style={styles.btn} onPress={checkPhone} disabled={busyP}>
+                      {busyP ? <ActivityIndicator color="#000" /> : <Text style={styles.btnText}>Confirm phone</Text>}
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={sendPhone} disabled={busyP}>
+                      <Text style={styles.resend}>Resend code</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
               </>
             )}
           </>
         )}
       </View>
-
-      {allVerified && (
-        <TouchableOpacity
-          style={[styles.btn, { marginTop: 24 }]}
-          onPress={() => navigation.replace('Home')}
-        >
-          <Text style={styles.btnText}>Continue to app</Text>
-        </TouchableOpacity>
-      )}
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0B0B0F' },
-  center: { flex: 1, backgroundColor: '#0B0B0F', padding: 30, justifyContent: 'center', alignItems: 'center' },
-  bigIcon: { color: '#D4AF37', fontSize: 56, fontWeight: '700', marginBottom: 20 },
-  approvedTitle: { color: '#fff', fontSize: 22, fontWeight: '700', marginBottom: 12 },
-  approvedText: { color: '#888', textAlign: 'center', lineHeight: 22 },
   title: { color: '#fff', fontSize: 24, fontWeight: '700', marginBottom: 10 },
   subtitle: { color: '#888', lineHeight: 22, marginBottom: 20 },
   card: {
@@ -205,6 +213,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#16161C', color: '#fff', padding: 14, borderRadius: 10,
     borderWidth: 1, borderColor: '#26262E', fontSize: 18, letterSpacing: 4,
     textAlign: 'center', marginBottom: 10,
+  },
+  phoneInput: {
+    backgroundColor: '#16161C', color: '#fff', padding: 14, borderRadius: 10,
+    borderWidth: 1, borderColor: '#26262E', fontSize: 16, marginBottom: 10,
   },
   btn: { backgroundColor: '#D4AF37', padding: 14, borderRadius: 10 },
   btnText: { color: '#000', textAlign: 'center', fontWeight: '700', fontSize: 15 },

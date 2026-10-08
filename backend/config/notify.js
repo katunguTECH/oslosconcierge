@@ -1,19 +1,15 @@
-﻿const nodemailer = require('nodemailer');
-const axios = require('axios');
+﻿const axios = require('axios');
 
-// ---- Email via Brevo (SMTP) ----
-const transporter = nodemailer.createTransport({
-  host: 'smtp-relay.brevo.com',
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.BREVO_SMTP_USER,
-    pass: process.env.BREVO_SMTP_KEY,
-  },
-});
-
+// ---- Email via Brevo HTTP API (works on Render free tier) ----
 async function sendEmailCode(to, code) {
-  const html = `
+  const url = 'https://api.brevo.com/v3/smtp/email';
+  const headers = {
+    'api-key': process.env.BREVO_SMS_API_KEY,
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  };
+
+  const htmlContent = `
     <div style="font-family:sans-serif;max-width:480px;margin:auto;background:#0B0B0F;color:#fff;padding:32px;border-radius:12px;">
       <h1 style="color:#D4AF37;font-size:22px;margin:0 0 8px;">Oslo's Concierge</h1>
       <p style="color:#aaa;font-size:13px;margin:0 0 24px;">Email verification</p>
@@ -25,21 +21,25 @@ async function sendEmailCode(to, code) {
     </div>
   `;
 
-  await transporter.sendMail({
-    from: `"Oslo's Concierge" <${process.env.BREVO_SMTP_USER}>`,
-    to,
+  const body = {
+    sender: { name: "Oslo's Concierge", email: process.env.BREVO_SMTP_USER },
+    to: [{ email: to }],
     subject: `Your Oslo verification code: ${code}`,
-    html,
-  });
+    htmlContent,
+  };
+
+  await axios.post(url, body, { headers });
 }
 
-// ---- SMS via Brevo (API) ----
+// ---- SMS via Brevo HTTP API ----
 async function sendSmsCode(to, code) {
   const url = 'https://api.brevo.com/v3/transactionalSMS/send';
   const headers = {
     'api-key': process.env.BREVO_SMS_API_KEY,
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
   };
+
   const body = {
     sender: 'OsloConcierge',
     recipient: to,
