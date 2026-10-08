@@ -32,7 +32,13 @@ export default function AppNavigator() {
     );
   }
 
-  const needsVerify = user && !user.isVerified;
+  // Force verification if ANY of these are missing
+  const needsVerify = user && (
+    !user.emailVerified ||
+    !user.phoneVerified ||
+    !user.phone ||
+    user.phone.trim() === ''
+  );
 
   return (
     <NavigationContainer theme={theme}>
@@ -43,7 +49,13 @@ export default function AppNavigator() {
             <Stack.Screen name="SignUp" component={SignUpScreen} />
           </>
         ) : needsVerify ? (
-          <Stack.Screen name="Verify" component={VerifyScreen} />
+          <>
+            <Stack.Screen name="Verify" component={VerifyScreen} />
+            <Stack.Screen name="AdminLogin" component={AdminLoginScreen}
+              options={{ headerShown: true, title: 'Admin', headerStyle: { backgroundColor: '#14141A' } }} />
+            <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen}
+              options={{ headerShown: false }} />
+          </>
         ) : (
           <>
             <Stack.Screen name="Home" component={HomeScreen} />
