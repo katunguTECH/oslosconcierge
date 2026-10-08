@@ -32,10 +32,19 @@ export default function AppNavigator() {
     );
   }
 
+  const needsVerify = user && !user.isVerified;
+
   return (
     <NavigationContainer theme={theme}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {user ? (
+        {!user ? (
+          <>
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="SignUp" component={SignUpScreen} />
+          </>
+        ) : needsVerify ? (
+          <Stack.Screen name="Verify" component={VerifyScreen} />
+        ) : (
           <>
             <Stack.Screen name="Home" component={HomeScreen} />
             <Stack.Screen name="Chat" component={ChatScreen}
@@ -50,11 +59,6 @@ export default function AppNavigator() {
               options={{ headerShown: true, title: 'Admin', headerStyle: { backgroundColor: '#14141A' } }} />
             <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen}
               options={{ headerShown: false }} />
-          </>
-        ) : (
-          <>
-            <Stack.Screen name="Login" component={LoginScreen} />
-            <Stack.Screen name="SignUp" component={SignUpScreen} />
           </>
         )}
       </Stack.Navigator>

@@ -1,26 +1,32 @@
 ﻿import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView, ActivityIndicator, Platform } from 'react-native';
 import { useAuth } from '../context/AuthContext';
+
+const showAlert = (title, msg) => {
+  if (Platform.OS === 'web') window.alert(`${title}\n\n${msg}`);
+  else Alert.alert(title, msg);
+};
 
 export default function SignUpScreen({ navigation }) {
   const { register } = useAuth();
-  const [form, setForm] = useState({ name: '', email: '', password: '', age: '', city: '' });
+  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', age: '', city: '' });
   const [busy, setBusy] = useState(false);
 
   const set = (k) => (v) => setForm((f) => ({ ...f, [k]: v }));
 
   const handleSignUp = async () => {
-    if (!form.name || !form.email || !form.password) {
-      return Alert.alert('Missing info', 'Name, email and password are required');
+    if (!form.name || !form.email || !form.password || !form.phone) {
+      return showAlert('Missing info', 'Name, email, phone and password are required');
     }
     if (Number(form.age) < 18) {
-      return Alert.alert('Age restriction', 'You must be 18 or older to join');
+      return showAlert('Age restriction', 'You must be 18 or older to join');
     }
     try {
       setBusy(true);
       await register({ ...form, age: Number(form.age) });
+      navigation.replace('Verify');
     } catch (err) {
-      Alert.alert('Sign up failed', err?.response?.data?.message || err.message);
+      showAlert('Sign up failed', err?.response?.data?.message || err.message);
     } finally {
       setBusy(false);
     }
@@ -35,6 +41,9 @@ export default function SignUpScreen({ navigation }) {
       <TextInput style={styles.input} placeholder="Email" placeholderTextColor="#888"
         autoCapitalize="none" keyboardType="email-address"
         value={form.email} onChangeText={set('email')} />
+      <TextInput style={styles.input} placeholder="Phone (+254...)" placeholderTextColor="#888"
+        keyboardType="phone-pad"
+        value={form.phone} onChangeText={set('phone')} />
       <TextInput style={styles.input} placeholder="Password" placeholderTextColor="#888"
         secureTextEntry value={form.password} onChangeText={set('password')} />
       <TextInput style={styles.input} placeholder="Age (18+)" placeholderTextColor="#888"

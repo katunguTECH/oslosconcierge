@@ -4,6 +4,7 @@ const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    phone: { type: String, required: true, unique: true, trim: true },
     password: { type: String, required: true, select: false },
     role: { type: String, enum: ['member', 'concierge', 'admin'], default: 'member' },
     age: { type: Number, min: 18 },
@@ -18,17 +19,16 @@ const userSchema = new mongoose.Schema(
     isPremium: { type: Boolean, default: false },
     lastSeen: { type: Date, default: Date.now },
 
-    verification: {
-      status: {
-        type: String,
-        enum: ['unverified', 'pending', 'approved', 'rejected'],
-        default: 'unverified',
-      },
-      idPhotoUrl: { type: String, default: '' },
-      selfieUrl: { type: String, default: '' },
-      submittedAt: { type: Date },
-      reviewedAt: { type: Date },
-      rejectionReason: { type: String, default: '' },
+    emailVerified: { type: Boolean, default: false },
+    phoneVerified: { type: Boolean, default: false },
+
+    emailCode: {
+      code: { type: String, default: '' },
+      expiresAt: { type: Date, default: null },
+    },
+    phoneCode: {
+      code: { type: String, default: '' },
+      expiresAt: { type: Date, default: null },
     },
   },
   { timestamps: true }

@@ -35,12 +35,12 @@ export const AuthProvider = ({ children }) => {
     const { data } = await api.get('/api/auth/me');
     const u = data.user;
     const normalized = {
-      id: u._id, name: u.name, email: u.email, role: u.role,
+      id: u._id, name: u.name, email: u.email, phone: u.phone, role: u.role,
       age: u.age, gender: u.gender, city: u.city, bio: u.bio,
       interests: u.interests, lookingFor: u.lookingFor,
       budgetRange: u.budgetRange, photos: u.photos,
       isVerified: u.isVerified, isPremium: u.isPremium,
-      verification: u.verification,
+      emailVerified: u.emailVerified, phoneVerified: u.phoneVerified,
     };
     setUser(normalized);
     await AsyncStorage.setItem('user', JSON.stringify(normalized));

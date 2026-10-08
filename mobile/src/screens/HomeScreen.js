@@ -20,9 +20,7 @@ export default function HomeScreen({ navigation }) {
           setMembers(data.members);
         } catch (err) {
           console.log('Load members failed:', err.message);
-        } finally {
-          setLoading(false);
-        }
+        } finally { setLoading(false); }
       })();
     }, [])
   );
@@ -76,27 +74,6 @@ export default function HomeScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      {!user?.isVerified && (
-        <TouchableOpacity
-          style={styles.verifyBanner}
-          onPress={() => navigation.navigate('Verify')}
-        >
-          <View style={{ flex: 1 }}>
-            <Text style={styles.verifyTitle}>
-              {user?.verification?.status === 'pending'
-                ? 'Verification in review'
-                : 'Get verified'}
-            </Text>
-            <Text style={styles.verifyText}>
-              {user?.verification?.status === 'pending'
-                ? 'We are reviewing your documents'
-                : 'Boost trust and unlock premium features'}
-            </Text>
-          </View>
-          <Text style={styles.verifyArrow}>→</Text>
-        </TouchableOpacity>
-      )}
-
       {loading ? (
         <ActivityIndicator color="#D4AF37" style={{ marginTop: 40 }} />
       ) : (
@@ -125,14 +102,6 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: '#D4AF37',
   },
   topBtnText: { color: '#D4AF37', fontSize: 12, fontWeight: '600' },
-  verifyBanner: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#1A1610', borderWidth: 1, borderColor: '#3A3020',
-    marginHorizontal: 16, marginTop: 16, padding: 14, borderRadius: 12,
-  },
-  verifyTitle: { color: '#D4AF37', fontWeight: '700', fontSize: 15 },
-  verifyText: { color: '#888', fontSize: 12, marginTop: 2 },
-  verifyArrow: { color: '#D4AF37', fontSize: 22, marginLeft: 12 },
   card: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: '#14141A',
     padding: 14, borderRadius: 14, marginBottom: 12,

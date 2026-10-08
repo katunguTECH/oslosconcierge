@@ -1,6 +1,11 @@
 ﻿import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Platform } from 'react-native';
 import { useAuth } from '../context/AuthContext';
+
+const showAlert = (t, m) => {
+  if (Platform.OS === 'web') window.alert(`${t}\n\n${m}`);
+  else Alert.alert(t, m);
+};
 
 export default function LoginScreen({ navigation }) {
   const { login } = useAuth();
@@ -9,15 +14,13 @@ export default function LoginScreen({ navigation }) {
   const [busy, setBusy] = useState(false);
 
   const handleLogin = async () => {
-    if (!email || !password) return Alert.alert('Missing info', 'Enter email and password');
+    if (!email || !password) return showAlert('Missing', 'Enter email and password');
     try {
       setBusy(true);
       await login(email.trim(), password);
     } catch (err) {
-      Alert.alert('Login failed', err?.response?.data?.message || err.message);
-    } finally {
-      setBusy(false);
-    }
+      showAlert('Login failed', err?.response?.data?.message || err.message);
+    } finally { setBusy(false); }
   };
 
   return (
@@ -26,21 +29,13 @@ export default function LoginScreen({ navigation }) {
       <Text style={styles.sub}>Private. Curated. Verified.</Text>
 
       <TextInput
-        style={styles.input}
-        placeholder="Email"
-        placeholderTextColor="#888"
-        autoCapitalize="none"
-        keyboardType="email-address"
-        value={email}
-        onChangeText={setEmail}
+        style={styles.input} placeholder="Email" placeholderTextColor="#888"
+        autoCapitalize="none" keyboardType="email-address"
+        value={email} onChangeText={setEmail}
       />
       <TextInput
-        style={styles.input}
-        placeholder="Password"
-        placeholderTextColor="#888"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
+        style={styles.input} placeholder="Password" placeholderTextColor="#888"
+        secureTextEntry value={password} onChangeText={setPassword}
       />
 
       <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={busy}>
