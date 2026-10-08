@@ -41,7 +41,7 @@ async function sendSmsCode(to, code) {
   };
 
   const body = {
-    sender: 'OsloConcierge',
+    sender: 'OsloSMS',
     recipient: to,
     content: `Oslo's Concierge verification code: ${code}. Expires in 15 minutes.`,
     type: 'transactional',
